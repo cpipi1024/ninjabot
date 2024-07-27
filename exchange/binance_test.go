@@ -1,9 +1,12 @@
 package exchange
 
 import (
+	"context"
 	"fmt"
+	"os"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/rodrigo-brito/ninjabot/model"
@@ -50,4 +53,16 @@ func TestFormatQuantity(t *testing.T) {
 			require.Equal(t, tc.expected, binance.formatPrice(tc.pair, tc.quantity))
 		})
 	}
+}
+
+func TestNewBinance(t *testing.T) {
+	spot, err := NewBinance(context.TODO(), "http://127.0.0.1:7890", WithBinanceCredentials(os.Getenv("API_KEY"), os.Getenv("API_SECRET")))
+	assert.Nil(t, err, "binance spot proxy client failed")
+	assert.NotNil(t, spot, "binance spot proxy client failed")
+}
+
+func TestNewBinanceFuture(t *testing.T) {
+	future, err := NewBinanceFuture(context.TODO(), "http://127.0.0.1:7890", WithBinanceFutureCredentials(os.Getenv("API_KEY"), os.Getenv("API_SECRET")))
+	assert.Nil(t, err, "binance future proxy client failed")
+	assert.NotNil(t, future, "binance future proxy client failed")
 }

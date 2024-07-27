@@ -88,14 +88,19 @@ func WithCustomTestnetAPIEndpoint(apiURL, wsURL, combinedURL string) BinanceOpti
 }
 
 // NewBinance create a new Binance exchange instance
-func NewBinance(ctx context.Context, options ...BinanceOption) (*Binance, error) {
+func NewBinance(ctx context.Context, proxy string, options ...BinanceOption) (*Binance, error) {
 	binance.WebsocketKeepalive = true
 	exchange := &Binance{ctx: ctx}
 	for _, option := range options {
 		option(exchange)
 	}
 
-	exchange.client = binance.NewClient(exchange.APIKey, exchange.APISecret)
+	if proxy == "" {
+		exchange.client = binance.NewClient(exchange.APIKey, exchange.APISecret)
+	} else {
+		exchange.client = binance.NewProxiedClient(exchange.APIKey, exchange.APISecret, proxy)
+	}
+
 	err := exchange.client.NewPingService().Do(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("binance ping fail: %w", err)

@@ -74,14 +74,19 @@ func WithBinanceFutureLeverage(pair string, leverage int, marginType MarginType)
 }
 
 // NewBinanceFuture will create a new BinanceFuture instance
-func NewBinanceFuture(ctx context.Context, options ...BinanceFutureOption) (*BinanceFuture, error) {
+func NewBinanceFuture(ctx context.Context, proxy string, options ...BinanceFutureOption) (*BinanceFuture, error) {
 	binance.WebsocketKeepalive = true
 	exchange := &BinanceFuture{ctx: ctx}
 	for _, option := range options {
 		option(exchange)
 	}
 
-	exchange.client = futures.NewClient(exchange.APIKey, exchange.APISecret)
+	if proxy == "" {
+		exchange.client = futures.NewClient(exchange.APIKey, exchange.APISecret)
+	} else {
+		exchange.client = futures.NewProxiedClient(exchange.APIKey, exchange.APISecret, proxy)
+	}
+
 	err := exchange.client.NewPingService().Do(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("binance ping fail: %w", err)
